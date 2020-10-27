@@ -434,6 +434,26 @@ public class InvitationServiceImpl implements InvitationService, NodeServicePoli
     }
 
     /**
+     * Start the invitation process for a ModeratedInvitation
+     *
+     * @param inviteeComments why does the invitee want access to the resource ?
+     * @param inviteeUserName who is to be invited
+     * @param resourceType Invitation .ResourceType what resource type ?
+     * @param resourceName which resource
+     * @param inviteeRole which role ?
+     * @param clientName which client
+     */
+    public ModeratedInvitation inviteModerated(String inviteeComments, String inviteeUserName,
+                                               Invitation.ResourceType resourceType, String resourceName, String inviteeRole, String clientName)
+    {
+        if (resourceType == Invitation.ResourceType.WEB_SITE)
+        {
+            return startModeratedInvite(inviteeComments, inviteeUserName, resourceType, resourceName, inviteeRole, clientName);
+        }
+        throw new InvitationException("unknown resource type");
+    }
+
+    /**
      * Invitee accepts this invitation Nominated Invitaton process only
      * 
      * @param invitationId the invitation id
@@ -1310,6 +1330,46 @@ public class InvitationServiceImpl implements InvitationService, NodeServicePoli
         workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_INVITEE_USER_NAME, inviteeUserName);
         workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_RESOURCE_NAME, resourceName);
         workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_RESOURCE_TYPE, resourceType.toString());
+
+        // get the moderated workflow
+
+        WorkflowDefinition wfDefinition = getWorkflowDefinition(InvitationWorkflowType.MODERATED);
+        return (ModeratedInvitation) startWorkflow(wfDefinition, workflowProps);
+    }
+
+    /**
+     * Moderated invitation implementation for given client
+     *
+     * @return the new moderated invitation
+     */
+    private ModeratedInvitation startModeratedInvite(String inviteeComments, String inviteeUserName,
+                                                     Invitation.ResourceType resourceType, String resourceName, String inviteeRole, String clientName)
+    {
+        SiteInfo siteInfo = siteService.getSite(resourceName);
+
+        if (siteService.isMember(resourceName, inviteeUserName))
+        {
+            if (logger.isDebugEnabled())
+                logger.debug("Failed - invitee user is already a member of the site.");
+
+            Object objs[] = { inviteeUserName, "", resourceName };
+            throw new InvitationExceptionUserError("invitation.invite.already_member", objs);
+        }
+
+        String roleGroup = siteService.getSiteRoleGroup(resourceName, SiteModel.SITE_MANAGER);
+
+        // get the workflow description
+        String workflowDescription = generateWorkflowDescription(siteInfo, "invitation.moderated.workflow.description");
+
+        Map<QName, Serializable> workflowProps = new HashMap<QName, Serializable>(16);
+        workflowProps.put(WorkflowModel.PROP_WORKFLOW_DESCRIPTION, workflowDescription);
+        workflowProps.put(WorkflowModelModeratedInvitation.ASSOC_GROUP_ASSIGNEE, roleGroup);
+        workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_INVITEE_COMMENTS, inviteeComments);
+        workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_INVITEE_ROLE, inviteeRole);
+        workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_INVITEE_USER_NAME, inviteeUserName);
+        workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_RESOURCE_NAME, resourceName);
+        workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_RESOURCE_TYPE, resourceType.toString());
+        workflowProps.put(WorkflowModelModeratedInvitation.WF_PROP_CLIENT_NAME, clientName.toString());
 
         // get the moderated workflow
 

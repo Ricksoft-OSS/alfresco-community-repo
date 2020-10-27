@@ -142,7 +142,7 @@
                                     <build>
                                         <dockerFileDir>${project.basedir}/</dockerFileDir>
                                         <buildOptions>
-                                            <squash>true</squash>
+<!--                                            <squash>true</squash>-->
                                         </buildOptions>
                                     </build>
                                 </image>
@@ -179,7 +179,7 @@
                                     <build>
                                         <dockerFileDir>${project.basedir}/</dockerFileDir>
                                         <buildOptions>
-                                            <squash>true</squash>
+<!--                                            <squash>true</squash>-->
                                         </buildOptions>
                                     </build>
                                 </image>
@@ -189,7 +189,7 @@
                                     <build>
                                         <dockerFileDir>${project.basedir}/</dockerFileDir>
                                         <buildOptions>
-                                            <squash>true</squash>
+<!--                                            <squash>true</squash>-->
                                         </buildOptions>
                                     </build>
                                 </image>

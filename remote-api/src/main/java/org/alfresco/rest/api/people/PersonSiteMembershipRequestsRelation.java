@@ -73,7 +73,13 @@ RelationshipResourceAction.Create<SiteMembershipRequest>, RelationshipResourceAc
         List<SiteMembershipRequest> result = new ArrayList<SiteMembershipRequest>(invites.size());
 		for(SiteMembershipRequest invite : invites)
 		{
-			SiteMembershipRequest siteInvite = siteMembershipRequests.createSiteMembershipRequest(personId, invite);
+			SiteMembershipRequest siteInvite = null;
+			String client = parameters.getParameter("client");
+			if(client != null) {
+				siteInvite = siteMembershipRequests.createSiteMembershipRequest(personId, invite, client);
+			} else {
+				siteInvite = siteMembershipRequests.createSiteMembershipRequest(personId, invite);
+			}
 			result.add(siteInvite);
 		}
 		return result;
